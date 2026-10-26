@@ -1,0 +1,57 @@
+@page
+@model cyberbezpieczenstwolab.Pages.Account.LoginModel
+@{
+    ViewData["Title"] = "Logowanie";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <h2>Logowanie</h2>
+        <hr />
+
+        @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+        {
+            <div class="alert alert-danger" role="alert">
+                @Model.ErrorMessage
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(Model.InfoMessage))
+        {
+            <div class="alert alert-info" role="alert">
+                @Model.InfoMessage
+            </div>
+        }
+
+        <form method="post">
+            <div class="mb-3">
+                <label asp-for="Input.Username" class="form-label">Login</label>
+                <input asp-for="Input.Username" class="form-control" autocomplete="username" />
+                <span asp-validation-for="Input.Username" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Input.Password" class="form-label">Haslo</label>
+                <input asp-for="Input.Password" type="password" class="form-control" autocomplete="current-password" />
+                <span asp-validation-for="Input.Password" class="text-danger"></span>
+            </div>
+
+            @if (Model.RequiresTotp)
+            {
+                <div class="mb-3">
+                    <label asp-for="Input.TotpCode" class="form-label">Kod jednorazowy TOTP (2FA)</label>
+                    <input asp-for="Input.TotpCode" class="form-control" placeholder="000000" maxlength="6" autofocus />
+                    <span asp-validation-for="Input.TotpCode" class="text-danger"></span>
+                </div>
+            }
+
+            <div class="mb-3">
+                <button type="submit" class="btn btn-primary">Zaloguj sie</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

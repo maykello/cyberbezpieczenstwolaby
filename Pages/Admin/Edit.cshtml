@@ -1,0 +1,72 @@
+@page "{id:int}"
+@model cyberbezpieczenstwolab.Pages.Admin.EditModel
+@{
+    ViewData["Title"] = "Edycja uzytkownika";
+}
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2>Edycja uzytkownika</h2>
+            @if (Model.IsReadOnly)
+            {
+                <span class="badge bg-warning text-dark">Tylko odczyt</span>
+            }
+        </div>
+        <hr />
+
+        @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+        {
+            <div class="alert alert-danger" role="alert">
+                @Model.ErrorMessage
+            </div>
+        }
+
+        <form method="post">
+            <input type="hidden" asp-for="Input.Id" />
+
+            <div class="mb-3">
+                <label asp-for="Input.Username" class="form-label">Login</label>
+                <input asp-for="Input.Username" class="form-control" disabled="@Model.IsReadOnly" />
+                <span asp-validation-for="Input.Username" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Input.Role" class="form-label">Rola</label>
+                <select asp-for="Input.Role" class="form-select" disabled="@Model.IsReadOnly">
+                    @foreach (var role in cyberbezpieczenstwolab.Models.AppRoles.All)
+                    {
+                        <option value="@role">@role</option>
+                    }
+                </select>
+                <span asp-validation-for="Input.Role" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3 form-check">
+                <input asp-for="Input.IsActive" class="form-check-input" type="checkbox" disabled="@Model.IsReadOnly" id="activeCheck" />
+                <label class="form-check-label" for="activeCheck">
+                    Konto aktywne
+                </label>
+            </div>
+
+            <div class="mb-3 form-check">
+                <input asp-for="Input.MustChangePassword" class="form-check-input" type="checkbox" disabled="@Model.IsReadOnly" id="mustChangeCheck" />
+                <label class="form-check-label" for="mustChangeCheck">
+                    Wymuszona zmiana hasla przy kolejnym logowaniu
+                </label>
+            </div>
+
+            <div class="mt-4">
+                @if (!Model.IsReadOnly)
+                {
+                    <button type="submit" class="btn btn-primary">Zapisz zmiany</button>
+                }
+                <a asp-page="/Admin/Index" class="btn btn-outline-secondary">Powrot</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

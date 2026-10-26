@@ -1,0 +1,26 @@
+@page
+@model cyberbezpieczenstwolab.Pages.IndexModel
+@{
+    ViewData["Title"] = "Strona glowna";
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Zamknij"></button>
+    </div>
+}
+
+<div class="text-center">
+    <h1 class="display-4">Witaj</h1>
+
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <p>Zalogowany uzytkownik: <strong>@User.Identity.Name</strong> (@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value)</p>
+    }
+    else
+    {
+        <p><a asp-page="/Account/Login" class="btn btn-primary">Zaloguj sie</a></p>
+    }
+</div>

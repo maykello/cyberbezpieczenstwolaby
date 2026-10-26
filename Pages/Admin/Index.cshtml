@@ -1,0 +1,179 @@
+@page
+@model cyberbezpieczenstwolab.Pages.Admin.IndexModel
+@{
+    ViewData["Title"] = "Uzytkownicy";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Uzytkownicy</h2>
+    @if (Model.IsReadOnly)
+    {
+        <span class="badge bg-warning text-dark">Tryb tylko do odczytu</span>
+    }
+</div>
+<hr />
+
+@if (!string.IsNullOrEmpty(Model.GeneratedPasswordNotice))
+{
+    <div class="alert alert-info" role="alert">
+        <strong>Wygenerowane haslo jednorazowe:</strong> @Model.GeneratedPasswordNotice
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(Model.SuccessMessage))
+{
+    <div class="alert alert-success" role="alert">
+        @Model.SuccessMessage
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <div class="alert alert-danger" role="alert">
+        @Model.ErrorMessage
+    </div>
+}
+
+@if (!Model.IsReadOnly)
+{
+    <div class="border p-3 mb-4 rounded bg-light">
+        <h5>Dodaj uzytkownika</h5>
+        <form method="post" asp-page-handler="AddUser">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-5">
+                    <label asp-for="CreateUser.Username" class="form-label">Login</label>
+                    <input asp-for="CreateUser.Username" class="form-control" placeholder="Login" />
+                    <span asp-validation-for="CreateUser.Username" class="text-danger"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="CreateUser.Role" class="form-label">Rola</label>
+                    <select asp-for="CreateUser.Role" class="form-select">
+                        @foreach (var role in cyberbezpieczenstwolab.Models.AppRoles.All)
+                        {
+                            <option value="@role">@role</option>
+                        }
+                    </select>
+                    <span asp-validation-for="CreateUser.Role" class="text-danger"></span>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary w-100">Utworz konto</button>
+                </div>
+            </div>
+        </form>
+    </div>
+}
+
+<table class="table table-bordered table-striped align-middle mb-4">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Login</th>
+            <th>Rola</th>
+            <th>Status</th>
+            <th>Wymuszona zmiana</th>
+            <th>Haslo jednorazowe</th>
+            <th>Waznosc hasla</th>
+            <th>Akcje</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var u in Model.UsersList)
+        {
+            <tr>
+                <td>@u.Id</td>
+                <td>
+                    <strong>@u.Username</strong>
+                    @if (u.IsTotpEnabled)
+                    {
+                        <span class="badge bg-info text-dark ms-1">2FA</span>
+                    }
+                </td>
+                <td>@u.Role</td>
+                <td>
+                    @if (u.IsActive)
+                    {
+                        <span class="text-success">Aktywny</span>
+                    }
+                    else
+                    {
+                        <span class="text-danger">Zablokowany</span>
+                    }
+                </td>
+                <td>@(u.MustChangePassword ? "Tak" : "Nie")</td>
+                <td>
+                    @if (u.IsTemporaryPassword)
+                    {
+                        <span class="text-warning">Do: @(u.TemporaryPasswordExpiresAt?.ToLocalTime().ToString("dd.MM HH:mm") ?? "-")</span>
+                    }
+                    else
+                    {
+                        <span class="text-muted">Stale</span>
+                    }
+                </td>
+                <td>@(u.PasswordExpiresAt?.ToLocalTime().ToString("dd.MM.yyyy") ?? "Bezterminowo")</td>
+                <td>
+                    @if (Model.IsReadOnly)
+                    {
+                        <a asp-page="/Admin/Edit" asp-route-id="@u.Id" class="btn btn-outline-secondary btn-sm">Podglad</a>
+                    }
+                    else
+                    {
+                        <a asp-page="/Admin/Edit" asp-route-id="@u.Id" class="btn btn-outline-secondary btn-sm">Edytuj</a>
+
+                        <form method="post" asp-page-handler="ToggleBlock" asp-route-id="@u.Id" class="d-inline">
+                            @if (u.IsActive)
+                            {
+                                <button type="submit" class="btn btn-outline-warning btn-sm">Blokuj</button>
+                            }
+                            else
+                            {
+                                <button type="submit" class="btn btn-outline-success btn-sm">Odblokuj</button>
+                            }
+                        </form>
+
+                        <form method="post" asp-page-handler="ResetPassword" asp-route-id="@u.Id" class="d-inline">
+                            <button type="submit" class="btn btn-outline-primary btn-sm">Reset</button>
+                        </form>
+
+                        <form method="post" asp-page-handler="DeleteUser" asp-route-id="@u.Id" class="d-inline" onsubmit="return confirm('Czy na pewno chcesz usunac tego uzytkownika?');">
+                            <button type="submit" class="btn btn-outline-danger btn-sm">Usun</button>
+                        </form>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<h4>Uprawnienia rol (RBAC)</h4>
+<hr />
+<div class="table-responsive mb-4">
+    <table class="table table-bordered table-striped table-sm align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Operacja systemowa</th>
+                @foreach (var role in cyberbezpieczenstwolab.Models.AppRoles.All)
+                {
+                    <th class="text-center">@role</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var row in Model.RolePermissionsMatrix)
+            {
+                <tr>
+                    <td>@row.Operation</td>
+                    @foreach (var role in cyberbezpieczenstwolab.Models.AppRoles.All)
+                    {
+                        var access = row.Access[role];
+                        var badgeClass = access.StartsWith("Dozwolone") ? "text-success" :
+                                         access.StartsWith("Tylko odczyt") ? "text-warning text-dark" : "text-muted";
+                        <td class="text-center">
+                            <span class="@badgeClass fw-semibold">@access</span>
+                        </td>
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

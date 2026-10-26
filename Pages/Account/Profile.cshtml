@@ -1,0 +1,64 @@
+@page
+@model cyberbezpieczenstwolab.Pages.Account.ProfileModel
+@{
+    ViewData["Title"] = "Profil uzytkownika";
+}
+
+<div class="row">
+    <div class="col-md-6">
+        <h2>Profil uzytkownika</h2>
+        <hr />
+
+        @if (Model.CurrentUser != null)
+        {
+            <table class="table table-bordered">
+                <tbody>
+                    <tr>
+                        <th style="width: 40%;">Login</th>
+                        <td>@Model.CurrentUser.Username</td>
+                    </tr>
+                    <tr>
+                        <th>Rola</th>
+                        <td>@Model.CurrentUser.Role</td>
+                    </tr>
+                    <tr>
+                        <th>Status</th>
+                        <td>@(Model.CurrentUser.IsActive ? "Aktywne" : "Zablokowane")</td>
+                    </tr>
+                    <tr>
+                        <th>Wymuszona zmiana hasla</th>
+                        <td>@(Model.CurrentUser.MustChangePassword ? "Tak" : "Nie")</td>
+                    </tr>
+                    <tr>
+                        <th>Haslo wazne do</th>
+                        <td>@(Model.CurrentUser.PasswordExpiresAt?.ToLocalTime().ToString("dd.MM.yyyy HH:mm") ?? "Bezterminowo")</td>
+                    </tr>
+                    <tr>
+                        <th>Hasla w historii</th>
+                        <td>@Model.PasswordHistoryCount</td>
+                    </tr>
+                    <tr>
+                        <th>TOTP (2FA)</th>
+                        <td>
+                            @if (Model.CurrentUser.IsTotpEnabled)
+                            {
+                                <span class="text-success me-2">Wlaczone</span>
+                                <a asp-page="/Account/TotpSetup" class="btn btn-outline-danger btn-sm">Zarzadzaj</a>
+                            }
+                            else
+                            {
+                                <span class="text-muted me-2">Wylaczone</span>
+                                <a asp-page="/Account/TotpSetup" class="btn btn-outline-primary btn-sm">Wlacz TOTP</a>
+                            }
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="mt-3">
+                <a asp-page="/Account/ChangePassword" class="btn btn-secondary">Zmien haslo</a>
+                <a asp-page="/Index" class="btn btn-outline-secondary">Strona glowna</a>
+            </div>
+        }
+    </div>
+</div>
